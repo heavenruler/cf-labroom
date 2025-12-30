@@ -9,3 +9,11 @@ Static “Hello, world” page deployed through Cloudflare Pages via GitHub Acti
 
 ## Develop
 - Edit `index.html`, then open it locally in a browser to preview.
+
+## R2 health check
+- Endpoint: `GET /health` (Pages Function) attempts an R2 list and returns JSON.
+- Binding: configure an R2 bucket binding named `BUCKET`.
+  - Pages dashboard: Settings → Functions → R2 bindings → add `BUCKET` pointing to your bucket.
+  - Wrangler: set `wrangler.jsonc` `r2_buckets[0].bucket_name` to your bucket name.
+- Success response: `{"status":"ok","checkedAt":"..."}`
+- Failure response: `{"status":"error","error":"..."}` with HTTP 500 when binding/credentials/bucket are invalid.
