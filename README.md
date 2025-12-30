@@ -34,6 +34,6 @@ Static “Hello, world” page deployed through Cloudflare Pages via GitHub Acti
 
 ## Go → Wasm demo
 - Endpoint: `GET /demo/go?name=YourName` returns a greeting from Go-compiled Wasm; linked from `index.html`.
-- Build (requires [TinyGo](https://tinygo.org/getting-started/install/)): `tinygo build -o wasm/demo.wasm -target wasm ./wasm/demo.go`
+- A minimal `wasm/demo.wasm` is included so `/demo/go` works without extra tooling; it exports `alloc`, `greet`, `result_len`, `memory`.
+- Optional rebuild with real Go logic (requires [TinyGo](https://tinygo.org/getting-started/install/)): `tinygo build -o wasm/demo.wasm -target wasm ./wasm/demo.go`
 - Deploy: ensure `wasm/demo.wasm` is committed or built in CI before `wrangler deploy`, so `_worker.js` can load it from assets.
-- Exports expected by `_worker.js`: `alloc`, `greet`, `result_len`, and `memory` (default TinyGo export). Errors will hint if the wasm asset is missing.
