@@ -1,0 +1,28 @@
+name: Health Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * *" # daily UTC
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check R2 health
+        env:
+          BASE_URL: ${{ secrets.HEALTH_BASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "${BASE_URL:-}" || { echo "HEALTH_BASE_URL secret is required"; exit 1; }
+          curl -fsSL "${BASE_URL%/}/health" | tee /tmp/health.json
+          node -e "const r=require('fs').readFileSync('/tmp/health.json','utf8'); const j=JSON.parse(r); if(j.status!=='ok'){throw new Error('R2 health not ok')} console.log('R2 ok', j)"
+
+      - name: Check D1 health
+        env:
+          BASE_URL: ${{ secrets.HEALTH_BASE_URL }}
+        run: |
+          set -euo pipefail
+          test -n "${BASE_URL:-}" || { echo "HEALTH_BASE_URL secret is required"; exit 1; }
+          curl -fsSL "${BASE_URL%/}/health/d1" | tee /tmp/health-d1.json
+          node -e "const r=require('fs').readFileSync('/tmp/health-d1.json','utf8'); const j=JSON.parse(r); if(j.status!=='ok'){throw new Error('D1 health not ok')} console.log('D1 ok', j)"
