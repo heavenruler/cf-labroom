@@ -13,10 +13,13 @@ export async function onRequest(context) {
 
     let d1 = null;
     if (db) {
-      const row = await db.prepare("select sqlite_version() as sqlite_version, 1 as ok").first();
+      const row = await db.prepare("select 1 as ok").first();
+      const tables = await db.prepare(
+        "select name, type from sqlite_master where type in ('table','view') order by name limit 5"
+      ).all();
       d1 = {
-        sqliteVersion: row?.sqlite_version ?? null,
-        queryResult: row ?? null
+        queryResult: row ?? null,
+        tables: tables?.results ?? []
       };
     }
 

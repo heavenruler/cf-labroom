@@ -54,14 +54,17 @@ async function handleD1Health(env) {
       return json({ status: "error", error: "DB binding is missing" }, 500);
     }
 
-    // Simple query to verify connectivity and response.
-    const row = await env.DB.prepare("select sqlite_version() as sqlite_version, 1 as ok").first();
+    // Simple query to verify connectivity and list a few tables.
+    const row = await env.DB.prepare("select 1 as ok").first();
+    const tables = await env.DB.prepare(
+      "select name, type from sqlite_master where type in ('table','view') order by name limit 5"
+    ).all();
 
     return json({
       status: "ok",
       checkedAt: new Date().toISOString(),
-      sqliteVersion: row?.sqlite_version ?? null,
       queryResult: row ?? null,
+      tables: tables?.results ?? [],
     });
   } catch (error) {
     return json(
