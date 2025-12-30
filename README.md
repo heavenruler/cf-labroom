@@ -25,8 +25,3 @@ Static “Hello, world” page deployed through Cloudflare Pages via GitHub Acti
   - Pages: Settings → Functions → D1 bindings → add `DB` pointing to your database.
   - Workers (wrangler deploy): set `wrangler.jsonc` `d1_databases[0].database_id` to your D1 database ID.
 - Success response includes `queryResult` and `tables`; failures return status 500 with an error message.
-
-## Automated health checks
-- Workflow: `.github/workflows/health-check.yml` hits `/health` and `/health/d1`.
-- Configure repo secret `HEALTH_BASE_URL` (e.g. `https://cf-labroom.heavenruler.workers.dev`).
-- Trigger manually (`workflow_dispatch`) or wait for the daily scheduled run; failures surface in Actions.
