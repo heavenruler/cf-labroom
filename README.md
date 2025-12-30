@@ -18,3 +18,10 @@ Static “Hello, world” page deployed through Cloudflare Pages via GitHub Acti
   - Workers (wrangler deploy): set `wrangler.jsonc` `r2_buckets[0].bucket_name` and deploy; `main` is `_worker.js`.
 - Success response: `{"status":"ok","checkedAt":"..."}`
 - Failure response: `{"status":"error","error":"..."}` with HTTP 500 when binding/credentials/bucket are invalid.
+
+## D1 health check
+- Endpoint: `GET /health/d1` runs `select sqlite_version()` to verify connectivity and returns JSON.
+- Binding: configure a D1 binding named `DB`.
+  - Pages: Settings → Functions → D1 bindings → add `DB` pointing to your database.
+  - Workers (wrangler deploy): set `wrangler.jsonc` `d1_databases[0].database_id` to your D1 database ID.
+- Success response includes `sqliteVersion` and the query result; failures return status 500 with an error message.

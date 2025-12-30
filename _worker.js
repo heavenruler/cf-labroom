@@ -6,6 +6,10 @@ export default {
       return handleHealth(env);
     }
 
+    if (url.pathname === "/health/d1") {
+      return handleD1Health(env);
+    }
+
     // Fallback to static asset serving
     return env.ASSETS.fetch(request, env, ctx);
   },
@@ -42,4 +46,27 @@ function json(body, status = 200) {
     status,
     headers: { "content-type": "application/json" },
   });
+}
+
+async function handleD1Health(env) {
+  try {
+    if (!env.DB) {
+      return json({ status: "error", error: "DB binding is missing" }, 500);
+    }
+
+    // Simple query to verify connectivity and response.
+    const row = await env.DB.prepare("select sqlite_version() as sqlite_version, 1 as ok").first();
+
+    return json({
+      status: "ok",
+      checkedAt: new Date().toISOString(),
+      sqliteVersion: row?.sqlite_version ?? null,
+      queryResult: row ?? null,
+    });
+  } catch (error) {
+    return json(
+      { status: "error", error: error.message ?? String(error) },
+      500
+    );
+  }
 }
