@@ -33,7 +33,5 @@ Static “Hello, world” page deployed through Cloudflare Pages via GitHub Acti
 - Trigger manually (`workflow_dispatch`) or wait for the daily scheduled run; failures surface in Actions.
 
 ## Go → Wasm demo
-- Endpoint: `GET /demo/go?name=YourName` returns a greeting from Go-compiled Wasm; linked from `index.html`.
-- A minimal `wasm/demo.wasm` is included so `/demo/go` works without extra tooling; it exports `alloc`, `greet`, `result_len`, `memory`.
-- Optional rebuild with real Go logic (requires [TinyGo](https://tinygo.org/getting-started/install/)): `tinygo build -o wasm/demo.wasm -target wasm ./wasm/demo.go`
-- Deploy: ensure `wasm/demo.wasm` is committed or built in CI before `wrangler deploy`, so `_worker.js` can load it from assets.
+- Endpoint: `GET /demo/go?name=YourName` currently returns a JS stub message (no Wasm) and is linked from `index.html`.
+- To enable a real Go→Wasm flow, build your own module (e.g., TinyGo: `tinygo build -o wasm/demo.wasm -target wasm ./wasm/demo.go`), commit it, and replace the stub logic in `_worker.js` to load and call the wasm.

@@ -11,7 +11,7 @@ export default {
     }
 
     if (url.pathname === "/demo/go") {
-      return handleGoDemo(request, env);
+      return handleGoDemo();
     }
 
     // Fallback to static asset serving
@@ -82,100 +82,13 @@ async function handleD1Health(env) {
   }
 }
 
-let goWasmInstance;
-const GO_WASM_BASE64 =
-  "AGFzbQEAAAABEANgAX8Bf2ACf38Bf2AAAX8DBAMAAQIFAwEAAQcnBAZtZW1vcnkCAAVhbGxvYwAABWdyZWV0AAEKcmVzdWx0X2xlbgACChIDAARBgAgLAARBgAgLAANBGAsLHwEAQYAICxhIZWxsbyBmcm9tIEdvL1dhc20gZGVtbyE=";
-
-async function handleGoDemo(request, env) {
-  try {
-    const name = new URL(request.url).searchParams.get("name") || "friend";
-    const wasm = await loadGoWasm(request, env);
-    const message = callGoGreet(wasm, name);
-    return json({ status: "ok", from: "go-wasm", message });
-  } catch (error) {
-    return json(
-      {
-        status: "error",
-        error: error.message ?? String(error),
-        hint: "Ensure wasm/demo.wasm is built (tinygo build -o wasm/demo.wasm -target wasm ./wasm/demo.go) and deployed. Inline fallback is bundled."
-      },
-      500
-    );
-  }
-}
-
-async function loadGoWasm(request, env) {
-  if (goWasmInstance) return goWasmInstance;
-
-  // Try loading from assets; if unavailable or blocked, fall back to bundled inline Wasm bytes.
-  let bytes;
-  try {
-    const assets = getAssets(env);
-    if (!assets) throw new Error("ASSETS binding missing; ensure assets binding is configured.");
-
-    const wasmUrl = new URL("/wasm/demo.wasm", request.url);
-    const res = await assets.fetch(new Request(wasmUrl));
-    if (!res.ok) throw new Error(`wasm asset missing (status ${res.status})`);
-
-    const contentType = res.headers.get("content-type") || "";
-    const wasmResponse =
-      contentType.includes("application/wasm") && res.body
-        ? res
-        : new Response(res.body, {
-            headers: { ...Object.fromEntries(res.headers), "content-type": "application/wasm" },
-          });
-
-    try {
-      const instantiated = await WebAssembly.instantiateStreaming(wasmResponse, {});
-      const instance = instantiated.instance ?? instantiated;
-      goWasmInstance = {
-        instance,
-        exports: instance.exports,
-        memory: instance.exports.memory,
-      };
-      return goWasmInstance;
-    } catch {
-      bytes = await res.arrayBuffer();
-    }
-  } catch {
-    // fall through to inline bytes
-  }
-
-  if (!bytes) {
-    bytes = decodeBase64(GO_WASM_BASE64).buffer;
-  }
-
-  const instantiated = await WebAssembly.instantiate(bytes, {});
-  const instance = instantiated.instance ?? instantiated;
-  goWasmInstance = {
-    instance,
-    exports: instance.exports,
-    memory: instance.exports.memory,
-  };
-  return goWasmInstance;
-}
-
-function callGoGreet(wasm, name) {
-  const { exports, memory } = wasm;
-  if (!exports || !exports.alloc || !exports.greet || !exports.result_len) {
-    throw new Error("greet/alloc/result_len exports not found");
-  }
-
-  const enc = new TextEncoder();
-  const data = enc.encode(name);
-  const ptr = exports.alloc(data.length);
-  if (!ptr) throw new Error("allocation failed");
-
-  const memView = new Uint8Array(memory.buffer, ptr, data.length);
-  memView.set(data);
-
-  const outPtr = exports.greet(ptr, data.length);
-  const outLen = exports.result_len();
-  if (!outPtr || !outLen) throw new Error("greet returned empty result");
-
-  const outView = new Uint8Array(memory.buffer, outPtr, outLen);
-  const dec = new TextDecoder();
-  return dec.decode(outView);
+function handleGoDemo() {
+  return json({
+    status: "ok",
+    from: "go-demo-stub",
+    message:
+      "This is a JS stub. To enable real Go→Wasm, build and deploy wasm/demo.wasm (e.g., tinygo build -o wasm/demo.wasm -target wasm ./wasm/demo.go) then remove the stub in _worker.js."
+  });
 }
 
 function getAssets(env) {
