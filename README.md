@@ -7,6 +7,7 @@ Static “Hello, world” page deployed through Cloudflare Pages via GitHub Acti
 - Push to `main` (or run the workflow manually) to trigger `.github/workflows/cloudflare-pages.yml`.
 - The workflow publishes the repository root using `wrangler.jsonc` (`assets.directory: "."`); `.cfignore` keeps non-site files out of the bundle.
 - `.assetsignore` prevents `_worker.js` from being uploaded as a static asset; it remains the worker entrypoint.
+- `assets.binding` is set to `ASSETS` in `wrangler.jsonc` so `_worker.js` can fetch static files (e.g., `wasm/demo.wasm`).
 
 ## Develop
 - Edit `index.html`, then open it locally in a browser to preview.

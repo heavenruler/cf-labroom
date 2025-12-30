@@ -15,7 +15,11 @@ export default {
     }
 
     // Fallback to static asset serving
-    return env.ASSETS.fetch(request, env, ctx);
+    const assets = getAssets(env);
+    if (!assets) {
+      return new Response("Static assets binding (ASSETS) missing. Ensure wrangler 'assets' is configured and deployed.", { status: 500 });
+    }
+    return assets.fetch(request, env, ctx);
   },
 };
 
@@ -101,8 +105,11 @@ async function handleGoDemo(request, env) {
 async function loadGoWasm(request, env) {
   if (goWasmInstance) return goWasmInstance;
 
+  const assets = getAssets(env);
+  if (!assets) throw new Error("ASSETS binding missing; ensure assets binding is configured.");
+
   const wasmUrl = new URL("/wasm/demo.wasm", request.url);
-  const res = await env.ASSETS.fetch(new Request(wasmUrl));
+  const res = await assets.fetch(new Request(wasmUrl));
   if (!res.ok) {
     throw new Error(`wasm asset missing (status ${res.status})`);
   }
@@ -139,4 +146,11 @@ function callGoGreet(wasm, name) {
   const outView = new Uint8Array(memory.buffer, outPtr, outLen);
   const dec = new TextDecoder();
   return dec.decode(outView);
+}
+
+function getAssets(env) {
+  if (env.ASSETS && typeof env.ASSETS.fetch === "function") {
+    return env.ASSETS;
+  }
+  return null;
 }

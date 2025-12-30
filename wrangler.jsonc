@@ -3,7 +3,8 @@
   "compatibility_date": "2025-11-17",
   "main": "_worker.js",
   "assets": {
-    "directory": "."
+    "directory": ".",
+    "binding": "ASSETS"
   },
   "r2_buckets": [
     {
