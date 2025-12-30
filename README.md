@@ -12,7 +12,7 @@ Static “Hello, world” page deployed through Cloudflare Pages via GitHub Acti
 - Edit `index.html`, then open it locally in a browser to preview.
 
 ## R2 health check
-- Endpoint: `GET /health` (served by `_worker.js`) attempts an R2 list and returns JSON.
+- Endpoint: `GET /health` (served by `_worker.js`) lists up to 10 R2 objects and returns JSON with keys/cursor/truncated.
 - Binding: configure an R2 bucket binding named `BUCKET`.
   - Pages dashboard: Settings → Functions → R2 bindings → add `BUCKET` pointing to your bucket.
   - Workers (wrangler deploy): set `wrangler.jsonc` `r2_buckets[0].bucket_name` and deploy; `main` is `_worker.js`.

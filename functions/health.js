@@ -5,13 +5,17 @@ export async function onRequest(context) {
       return jsonResponse({ status: "error", error: "BUCKET binding is missing" }, 500);
     }
 
-    // Simple liveness check: attempt to list a single object. If the bucket or creds
-    // are invalid, this will throw and surface the failure.
-    await bucket.list({ limit: 1 });
+    // List up to 10 objects to prove read access and surface a snapshot of the bucket.
+    const { objects = [], truncated = false, cursor = null } = await bucket.list({ limit: 10 });
+    const keys = objects.map((o) => o.key);
 
     return jsonResponse({
       status: "ok",
-      checkedAt: new Date().toISOString()
+      checkedAt: new Date().toISOString(),
+      objectsFound: keys.length,
+      truncated,
+      cursor,
+      keys
     });
   } catch (error) {
     return jsonResponse(

@@ -17,8 +17,18 @@ async function handleHealth(env) {
       return json({ status: "error", error: "BUCKET binding is missing" }, 500);
     }
 
-    await env.BUCKET.list({ limit: 1 });
-    return json({ status: "ok", checkedAt: new Date().toISOString() });
+    // List up to 10 objects to prove read access and surface a snapshot of the bucket.
+    const { objects = [], truncated = false, cursor = null } = await env.BUCKET.list({ limit: 10 });
+    const keys = objects.map((o) => o.key);
+
+    return json({
+      status: "ok",
+      checkedAt: new Date().toISOString(),
+      objectsFound: keys.length,
+      truncated,
+      cursor,
+      keys
+    });
   } catch (error) {
     return json(
       { status: "error", error: error.message ?? String(error) },
