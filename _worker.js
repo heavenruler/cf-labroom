@@ -83,6 +83,8 @@ async function handleD1Health(env) {
 }
 
 let goWasmInstance;
+const GO_WASM_BASE64 =
+  "AGFzbQEAAAABEANgAX8Bf2ACf38Bf2AAAX8DBAMAAQIFAwEAAQcnBAZtZW1vcnkCAAVhbGxvYwAABWdyZWV0AAEKcmVzdWx0X2xlbgACChIDAARBgAgLAARBgAgLAANBGAsLHwEAQYAICxhIZWxsbyBmcm9tIEdvL1dhc20gZGVtbyE=";
 
 async function handleGoDemo(request, env) {
   try {
@@ -95,7 +97,7 @@ async function handleGoDemo(request, env) {
       {
         status: "error",
         error: error.message ?? String(error),
-        hint: "Ensure wasm/demo.wasm is built (tinygo build -o wasm/demo.wasm -target wasm ./wasm/demo.go) and deployed."
+        hint: "Ensure wasm/demo.wasm is built (tinygo build -o wasm/demo.wasm -target wasm ./wasm/demo.go) and deployed. Inline fallback is bundled."
       },
       500
     );
@@ -105,32 +107,45 @@ async function handleGoDemo(request, env) {
 async function loadGoWasm(request, env) {
   if (goWasmInstance) return goWasmInstance;
 
-  const assets = getAssets(env);
-  if (!assets) throw new Error("ASSETS binding missing; ensure assets binding is configured.");
-
-  const wasmUrl = new URL("/wasm/demo.wasm", request.url);
-  const res = await assets.fetch(new Request(wasmUrl));
-  if (!res.ok) {
-    throw new Error(`wasm asset missing (status ${res.status})`);
-  }
-
-  const contentType = res.headers.get("content-type") || "";
-  const wasmResponse =
-    contentType.includes("application/wasm") && res.body
-      ? res
-      : new Response(res.body, {
-          headers: { ...Object.fromEntries(res.headers), "content-type": "application/wasm" },
-        });
-
-  let instantiated;
+  // Try loading from assets; if unavailable or blocked, fall back to bundled inline Wasm bytes.
+  let bytes;
   try {
-    instantiated = await WebAssembly.instantiateStreaming(wasmResponse, {});
-  } catch (err) {
-    // Fallback for environments that disallow streaming or if content-type is still wrong.
-    const bytes = await res.arrayBuffer();
-    instantiated = await WebAssembly.instantiate(bytes, {});
+    const assets = getAssets(env);
+    if (!assets) throw new Error("ASSETS binding missing; ensure assets binding is configured.");
+
+    const wasmUrl = new URL("/wasm/demo.wasm", request.url);
+    const res = await assets.fetch(new Request(wasmUrl));
+    if (!res.ok) throw new Error(`wasm asset missing (status ${res.status})`);
+
+    const contentType = res.headers.get("content-type") || "";
+    const wasmResponse =
+      contentType.includes("application/wasm") && res.body
+        ? res
+        : new Response(res.body, {
+            headers: { ...Object.fromEntries(res.headers), "content-type": "application/wasm" },
+          });
+
+    try {
+      const instantiated = await WebAssembly.instantiateStreaming(wasmResponse, {});
+      const instance = instantiated.instance ?? instantiated;
+      goWasmInstance = {
+        instance,
+        exports: instance.exports,
+        memory: instance.exports.memory,
+      };
+      return goWasmInstance;
+    } catch {
+      bytes = await res.arrayBuffer();
+    }
+  } catch {
+    // fall through to inline bytes
   }
 
+  if (!bytes) {
+    bytes = decodeBase64(GO_WASM_BASE64).buffer;
+  }
+
+  const instantiated = await WebAssembly.instantiate(bytes, {});
   const instance = instantiated.instance ?? instantiated;
   goWasmInstance = {
     instance,
@@ -168,4 +183,11 @@ function getAssets(env) {
     return env.ASSETS;
   }
   return null;
+}
+
+function decodeBase64(str) {
+  const binary = atob(str);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
 }
