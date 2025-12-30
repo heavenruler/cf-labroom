@@ -113,9 +113,24 @@ async function loadGoWasm(request, env) {
   if (!res.ok) {
     throw new Error(`wasm asset missing (status ${res.status})`);
   }
-  const bytes = await res.arrayBuffer();
-  const instantiated = await WebAssembly.instantiate(bytes, {});
-  // WebAssembly.instantiate returns { module, instance }
+
+  const contentType = res.headers.get("content-type") || "";
+  const wasmResponse =
+    contentType.includes("application/wasm") && res.body
+      ? res
+      : new Response(res.body, {
+          headers: { ...Object.fromEntries(res.headers), "content-type": "application/wasm" },
+        });
+
+  let instantiated;
+  try {
+    instantiated = await WebAssembly.instantiateStreaming(wasmResponse, {});
+  } catch (err) {
+    // Fallback for environments that disallow streaming or if content-type is still wrong.
+    const bytes = await res.arrayBuffer();
+    instantiated = await WebAssembly.instantiate(bytes, {});
+  }
+
   const instance = instantiated.instance ?? instantiated;
   goWasmInstance = {
     instance,
