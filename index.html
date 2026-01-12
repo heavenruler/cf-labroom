@@ -55,6 +55,22 @@
   <main>
     <h1>Hello, world.</h1>
     <h2>Fresh build for cf-labroom with demo.</h2>
+    <section style="margin-top: 1.5rem; text-align: left;">
+      <p style="margin-bottom: 0.25rem; font-weight: 600;">Available entry points:</p>
+      <ul style="padding-left: 1rem; margin: 0; list-style: disc;">
+        <li>
+          <a href="/api" style="color: #4fd1c5;">/api</a>
+          – returns a JSON index describing the worker endpoints and what they do.
+        </li>
+        <li>
+          <a href="/demo" style="color: #4fd1c5;">/demo</a>
+          – currently a lightweight stub summarizing how you might hook up wasm, D1, R2, or other services.
+        </li>
+        <li>
+          Static assets (the rest of the site) are served directly from the Pages bundle unless you change the worker logic.
+        </li>
+      </ul>
+    </section>
   </main>
 </body>
 </html>
