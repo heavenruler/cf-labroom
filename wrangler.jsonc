@@ -3,22 +3,8 @@
   "compatibility_date": "2025-11-17",
   "main": "_worker.js",
   "assets": {
-    "directory": ".",
-    "binding": "ASSETS"
+    "directory": "."
   },
-  "r2_buckets": [
-    {
-      "binding": "BUCKET",
-      "bucket_name": "img"
-    }
-  ],
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_id": "ccfa1e31-9800-4439-991e-a838b732408c",
-      "database_name": "d1-sql"
-    }
-  ],
   "observability": {
     "enabled": false,
     "head_sampling_rate": 1,
