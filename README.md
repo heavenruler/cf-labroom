@@ -1,6 +1,6 @@
 # cf-labroom
 
-A refreshed hello-world page for Cloudflare Pages. The static landing view now explains the health-check endpoints, links to the Go→Wasm stub, and keeps an updating clock that demonstrates the worker still serves live HTML.
+A refreshed hello-world page for Cloudflare Pages. The landing hero now simply states the live endpoints for `/health`, `/health/d1`, and the Go→Wasm demo without additional links or extras.
 
 ## Deploy
 - Set GitHub repo secrets `CLOUDFLARE_API_TOKEN` (Pages write token), `CLOUDFLARE_ACCOUNT_ID`, and `CLOUDFLARE_PROJECT_NAME`.

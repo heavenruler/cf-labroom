@@ -7,8 +7,8 @@
   <style>
     :root {
       font-family: "Inter", "Segoe UI", system-ui, sans-serif;
-      color: #0f172a;
       background: #0b1120;
+      color: #e2e8f0;
     }
     * {
       box-sizing: border-box;
@@ -19,150 +19,42 @@
       background: radial-gradient(circle at top, #1b2658, transparent 60%),
                   radial-gradient(circle at 80% 20%, #0f7cf7, transparent 40%),
                   #0b1120;
-      color: #e2e8f0;
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 3rem 1rem;
     }
     main {
-      width: min(100%, 960px);
-      background: rgba(15, 23, 42, 0.9);
-      border-radius: 22px;
+      width: min(100%, 720px);
       padding: 2.5rem;
-      box-shadow: 0 30px 80px rgba(2, 6, 23, 0.8);
-      border: 1px solid rgba(148, 163, 184, 0.2);
-    }
-    header {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      margin-bottom: 2rem;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 28px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      box-shadow: 0 25px 60px rgba(2, 6, 23, 0.8);
+      text-align: center;
     }
     h1 {
-      font-size: clamp(2.75rem, 4vw, 3.5rem);
       margin: 0;
+      font-size: clamp(2.75rem, 5vw, 3.5rem);
     }
     h2 {
+      margin: 0.75rem 0 0;
       font-size: 1.2rem;
       font-weight: 500;
       color: #94a3b8;
-      margin: 0;
-    }
-    p {
-      margin: 0;
-      line-height: 1.6;
-      color: #cbd5f5;
-    }
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.35rem 0.9rem;
-      border-radius: 999px;
-      border: 1px solid rgba(79, 70, 229, 0.6);
-      color: #c7d2fe;
-      font-size: 0.85rem;
-      background: rgba(79, 70, 229, 0.15);
-      margin-bottom: 0.5rem;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-    .card {
-      border-radius: 16px;
-      padding: 1.25rem;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      transition: border-color 0.3s ease, transform 0.3s ease;
-    }
-    .card:hover {
-      border-color: rgba(14, 165, 233, 0.9);
-      transform: translateY(-3px);
-    }
-    .card h3 {
-      margin-top: 0;
-      margin-bottom: 0.5rem;
-      font-size: 1.1rem;
-    }
-    .card a {
-      color: #38bdf8;
-      text-decoration: none;
-      font-weight: 600;
-    }
-    .status {
-      font-size: 1rem;
-      margin-top: 0.5rem;
-      color: #a5b4fc;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .status span {
-      width: 0.75rem;
-      height: 0.75rem;
-      border-radius: 50%;
-      background: #34d399;
-      display: inline-block;
-    }
-    footer {
-      margin-top: 2rem;
-      text-align: center;
-      color: #94a3b8;
-      font-size: 0.9rem;
+      line-height: 1.5;
     }
     @media (max-width: 480px) {
       main {
-        padding: 2rem 1.25rem;
+        padding: 2rem;
       }
     }
   </style>
 </head>
 <body>
   <main>
-    <header>
-      <div class="badge">Cloudflare Pages + Workers</div>
-      <h1>Hello, world.</h1>
-      <h2>Fresh build for cf-labroom with live links to /health, /health/d1, and the Go→Wasm demo.</h2>
-    </header>
-    <section class="grid">
-      <article class="card">
-        <h3>Static production</h3>
-        <p>Assets are uploaded directly from the repo root via the Pages workflow. Static files live beside the worker code.</p>
-        <div class="status"><span></span>Assets deployed</div>
-      </article>
-      <article class="card">
-        <h3>R2 health</h3>
-        <p>Touch <code>/health</code> to confirm bucket access. Lists up to ten objects so you can see what the connector reads.</p>
-        <a href="/health">Check R2 health</a>
-      </article>
-      <article class="card">
-        <h3>D1 health</h3>
-        <p>Send requests to <code>/health/d1</code> for connectivity checks and lightweight schema introspection.</p>
-        <a href="/health/d1">Check D1 health</a>
-      </article>
-      <article class="card">
-        <h3>Go → Wasm</h3>
-        <p>The worker currently responds with a stub. Build your own TinyGo module and drop it in <code>wasm/demo.wasm</code> to enable the demo.</p>
-        <a href="/demo/go">View Go/Wasm stub</a>
-      </article>
-    </section>
-    <p>Current local time: <span id="clock">loading…</span></p>
-    <footer>cf-labroom © Cloudflare</footer>
+    <h1>Hello, world.</h1>
+    <h2>Fresh build for cf-labroom with live links to /health, /health/d1, and the Go→Wasm demo.</h2>
   </main>
-  <script>
-    const clockEl = document.getElementById("clock");
-    function updateClock() {
-      const now = new Date();
-      clockEl.textContent = now.toLocaleTimeString(undefined, { hour12: false });
-    }
-    if (clockEl) {
-      updateClock();
-      setInterval(updateClock, 1000);
-    }
-  </script>
 </body>
 </html>
