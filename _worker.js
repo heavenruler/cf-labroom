@@ -10,6 +10,10 @@ export default {
       return htmlResponse(LOGIN_HTML);
     }
 
+    if (url.pathname === "/kv" || url.pathname === "/kv.html") {
+      return htmlResponse(KV_HTML);
+    }
+
   if (url.pathname === "/api/login" && request.method === "POST") {
     return handleLogin(request);
   }
@@ -390,6 +394,174 @@ const LOGIN_HTML = `<!doctype html>
         statusEl.classList.add("error");
       } finally {
         button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>`;
+
+const KV_HTML = `<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KV TTL 測試</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #0f172a, #020617 60%);
+      color: #e2e8f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: "Noto Sans", "Segoe UI", sans-serif;
+      padding: 2rem;
+    }
+    main {
+      width: min(720px, 100%);
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 22px;
+      padding: 2.5rem;
+      box-shadow: 0 25px 55px rgba(2, 6, 23, 0.8);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+    h1 {
+      margin-top: 0;
+      font-size: clamp(2rem, 3vw, 2.6rem);
+    }
+    p {
+      color: #cbd5f5;
+      line-height: 1.6;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+    }
+    input {
+      width: 100%;
+      padding: 0.7rem 0.8rem;
+      margin-bottom: 1rem;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(15, 23, 42, 0.6);
+      color: #e2e8f0;
+      font-size: 1rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    button {
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(90deg, #38bdf8, #6366f1);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    button.secondary {
+      background: linear-gradient(90deg, #22c55e, #16a34a);
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+    pre {
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: 12px;
+      padding: 1rem;
+      overflow-x: auto;
+      min-height: 120px;
+    }
+    small {
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>KV TTL 測試</h1>
+    <p>這裡可以直接 seed KV + TTL，並立即查看是否過期。預設 key 為 <code>ttl:test</code>。</p>
+
+    <div class="grid">
+      <div>
+        <label for="key">Key</label>
+        <input id="key" value="ttl:test" />
+      </div>
+      <div>
+        <label for="value">Value</label>
+        <input id="value" value="hello" />
+      </div>
+      <div>
+        <label for="ttl">TTL (秒)</label>
+        <input id="ttl" type="number" min="1" value="60" />
+      </div>
+    </div>
+
+    <div class="grid">
+      <button id="seed">寫入 KV + TTL</button>
+      <button id="status" class="secondary">檢查狀態</button>
+    </div>
+
+    <pre id="output">{}</pre>
+    <small>提示：TTL 到期後，<code>exists</code> 會變成 <code>false</code>。</small>
+  </main>
+
+  <script>
+    const keyEl = document.getElementById("key");
+    const valueEl = document.getElementById("value");
+    const ttlEl = document.getElementById("ttl");
+    const outputEl = document.getElementById("output");
+    const seedBtn = document.getElementById("seed");
+    const statusBtn = document.getElementById("status");
+
+    function setLoading(isLoading) {
+      seedBtn.disabled = isLoading;
+      statusBtn.disabled = isLoading;
+    }
+
+    function render(data) {
+      outputEl.textContent = JSON.stringify(data, null, 2);
+    }
+
+    seedBtn.addEventListener("click", async () => {
+      setLoading(true);
+      try {
+        const response = await fetch("/api/kv/seed", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            key: keyEl.value,
+            value: valueEl.value,
+            ttlSeconds: Number(ttlEl.value),
+          }),
+        });
+        render(await response.json());
+      } catch (error) {
+        render({ status: "error", message: error.message });
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    statusBtn.addEventListener("click", async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({ key: keyEl.value });
+        const response = await fetch("/api/kv/status?" + params.toString());
+        render(await response.json());
+      } catch (error) {
+        render({ status: "error", message: error.message });
+      } finally {
+        setLoading(false);
       }
     });
   </script>
