@@ -1,3 +1,7 @@
 name = "cf-labroom"
 main = "_worker.js"
 compatibility_date = "2025-11-17"
+
+[[kv_namespaces]]
+binding = "LABROOM_KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"

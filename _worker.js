@@ -1,5 +1,5 @@
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     const url = new URL(request.url);
 
     if (url.pathname === "/" || url.pathname === "/index.html") {
@@ -12,6 +12,14 @@ export default {
 
   if (url.pathname === "/api/login" && request.method === "POST") {
     return handleLogin(request);
+  }
+
+  if (url.pathname === "/api/kv/seed" && request.method === "POST") {
+    return handleKvSeed(request, env);
+  }
+
+  if (url.pathname === "/api/kv/status" && request.method === "GET") {
+    return handleKvStatus(url, env);
   }
 
     return new Response("Not Found", { status: 404 });
@@ -99,6 +107,66 @@ function formatTimezone(offsetHours) {
   const hhStr = String(hh).padStart(2, "0");
   const mmStr = mm ? String(mm).padStart(2, "0") : null;
   return `UTC${sign}${hhStr}${mmStr ? `:${mmStr}` : ""}`;
+}
+
+async function handleKvSeed(request, env) {
+  if (!env?.LABROOM_KV) {
+    return json({ status: "error", message: "KV binding LABROOM_KV not configured" }, 500);
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch (error) {
+    return json({ status: "error", message: "invalid JSON payload" }, 400);
+  }
+
+  const { key = "ttl:test", value = "ttl-seed", ttlSeconds = 60 } = body ?? {};
+  const ttl = Number(ttlSeconds);
+  if (!Number.isFinite(ttl) || ttl <= 0) {
+    return json({ status: "error", message: "ttlSeconds must be a positive number" }, 400);
+  }
+
+  const createdAt = new Date();
+  const expiresAt = new Date(createdAt.getTime() + ttl * 1000);
+  const metadata = {
+    createdAt: createdAt.toISOString(),
+    ttlSeconds: ttl,
+    expiresAt: expiresAt.toISOString(),
+  };
+
+  await env.LABROOM_KV.put(String(key), String(value), {
+    expirationTtl: ttl,
+    metadata,
+  });
+
+  return json({
+    status: "ok",
+    message: "seeded",
+    key: String(key),
+    value: String(value),
+    ...metadata,
+  });
+}
+
+async function handleKvStatus(url, env) {
+  if (!env?.LABROOM_KV) {
+    return json({ status: "error", message: "KV binding LABROOM_KV not configured" }, 500);
+  }
+
+  const key = url.searchParams.get("key") || "ttl:test";
+  const result = await env.LABROOM_KV.getWithMetadata(String(key), { type: "text" });
+  const value = result?.value ?? null;
+  const metadata = result?.metadata ?? null;
+
+  return json({
+    status: "ok",
+    key: String(key),
+    exists: value !== null,
+    value,
+    metadata,
+    now: new Date().toISOString(),
+  });
 }
 
 const INDEX_HTML = `<!doctype html>
